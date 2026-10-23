@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mensagem de Voz | VanPab_3D</title>
+    <!-- Tailwind CSS para estilização rápida e moderna -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @keyframes pulse-wave {
+            0%, 100% { height: 8px; }
+            50% { height: 35px; }
+        }
+        .wave-bar {
+            animation: pulse-wave 1.2s ease-in-out infinite;
+        }
+        .wave-bar:nth-child(2) { animation-delay: 0.2s; }
+        .wave-bar:nth-child(3) { animation-delay: 0.4s; }
+        .wave-bar:nth-child(4) { animation-delay: 0.1s; }
+        .wave-bar:nth-child(5) { animation-delay: 0.3s; }
+    </style>
+</head>
+<body class="bg-zinc-950 text-zinc-100 flex flex-col items-center justify-center min-h-screen p-4 font-sans">
+
+    <!-- Container principal estilo Card do Spotify -->
+    <div class="w-full max-w-sm bg-zinc-900 border border-zinc-800 rounded-2xl p-6 shadow-2xl flex flex-col items-center">
+        
+        <!-- Imagem ou Mockup da Peça em Resina -->
+        <div class="w-48 h-48 bg-zinc-800 rounded-xl overflow-hidden shadow-inner mb-6 flex items-center justify-center border border-zinc-700">
+            <!-- Aqui você pode colocar a foto do item impresso -->
+            <span class="text-xs text-zinc-400 font-medium">📷 Foto da Peça 3D</span>
+        </div>
+
+        <!-- Títulos -->
+        <div class="text-center mb-6 w-full">
+            <h1 class="text-xl font-bold tracking-tight text-white mb-1">Mensagem Especial</h1>
+            <p class="text-sm text-zinc-400">Gravada com a voz original</p>
+        </div>
+
+        <!-- Equalizador / Ondas Sonoras Visuais -->
+        <div id="visualizer" class="flex items-center justify-center gap-1.5 h-12 mb-6 opacity-40 transition-opacity duration-300">
+            <div class="w-1.5 bg-emerald-500 rounded-full wave-bar"></div>
+            <div class="w-1.5 bg-emerald-500 rounded-full wave-bar"></div>
+            <div class="w-1.5 bg-emerald-500 rounded-full wave-bar"></div>
+            <div class="w-1.5 bg-emerald-500 rounded-full wave-bar"></div>
+            <div class="w-1.5 bg-emerald-500 rounded-full wave-bar"></div>
+        </div>
+
+        <!-- Barra de Progresso do Áudio -->
+        <div class="w-full mb-6">
+            <input type="range" id="progressBar" value="0" max="100" class="w-full h-1.5 bg-zinc-700 rounded-lg appearance-none cursor-pointer accent-emerald-500">
+            <div class="flex justify-between text-xs text-zinc-500 mt-1">
+                <span id="currentTime">0:00</span>
+                <span id="duration">0:00</span>
+            </div>
+        </div>
+
+        <!-- Botão Principal de Play/Pause -->
+        <button id="playBtn" class="w-16 h-16 bg-emerald-500 hover:bg-emerald-400 text-zinc-950 rounded-full flex items-center justify-center shadow-lg transition-transform active:scale-95">
+            <!-- Ícone de Play -->
+            <svg id="playIcon" class="w-7 h-7 translate-x-0.5" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M8 5v14l11-7z"/>
+            </svg>
+            <!-- Ícone de Pause (escondido inicialmente) -->
+            <svg id="pauseIcon" class="w-7 h-7 hidden" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>
+            </svg>
+        </button>
+
+    </div>
+
+    <!-- Elemento de Áudio (Aqui entraria o link do seu arquivo de voz gravado) -->
+    <audio id="audioPlayer" src="audio.mp3"></audio>
+
+    <script>
+        const playBtn = document.getElementById('playBtn');
+        const playIcon = document.getElementById('playIcon');
+        const pauseIcon = document.getElementById('pauseIcon');
+        const audio = document.getElementById('audioPlayer');
+        const progressBar = document.getElementById('progressBar');
+        const currentTimeEl = document.getElementById('currentTime');
+        const durationEl = document.getElementById('duration');
+        const visualizer = document.getElementById('visualizer');
+
+        // Formatar segundos para formato MM:SS
+        function formatTime(seconds) {
+            const mins = Math.floor(seconds / 60);
+            const secs = Math.floor(seconds % 60);
+            return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
+        }
+
+        // Atualizar duração total quando o áudio carregar
+        audio.addEventListener('loadedmetadata', () => {
+            durationEl.textContent = formatTime(audio.duration);
+        });
+
+        // Alternar Play / Pause
+        playBtn.addEventListener('click', () => {
+            if (audio.paused) {
+                audio.play();
+                playIcon.classList.add('hidden');
+                pauseIcon.classList.remove('hidden');
+                visualizer.classList.remove('opacity-40');
+                visualizer.classList.add('opacity-100');
+            } else {
+                audio.pause();
+                playIcon.classList.remove('hidden');
+                pauseIcon.classList.add('hidden');
+                visualizer.classList.remove('opacity-100');
+                visualizer.classList.add('opacity-40');
+            }
+        });
+
+        // Atualizar barra de progresso conforme o áudio toca
+        audio.addEventListener('timeupdate', () => {
+            const progress = (audio.currentTime / audio.duration) * 100;
+            progressBar.value = progress;
+            currentTimeEl.textContent = formatTime(audio.currentTime);
+        });
+
+        // Permitir arrastar a barra para avançar/voltar o áudio
+        progressBar.addEventListener('input', () => {
+            const time = (progressBar.value / 100) * audio.duration;
+            audio.currentTime = time;
+        });
+
+        // Quando o áudio terminar
+        audio.addEventListener('ended', () => {
+            playIcon.classList.remove('hidden');
+            pauseIcon.classList.add('hidden');
+            visualizer.classList.remove('opacity-100');
+            visualizer.classList.add('opacity-40');
+            progressBar.value = 0;
+            audio.currentTime = 0;
+        });
+    </script>
+</body>
+</html>
